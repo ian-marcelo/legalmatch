@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="Ferdinand Tugano" />
+    <link rel="icon" href="favicon.ico" />
+
+    <title>Bootstrap Stater</title>
+
+    <!-- Icons for this template -->
+    <link
+      href="assets/fonts/font-awesome/css/all.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <!-- Stylesheet -->
+    <!-- build:css -->
+    <link href="assets/css/app.css" rel="stylesheet" />
+    <!-- endbuild -->
+  </head>
+
+  <body>
+    <script type="text/x-template" id="autocomplete-tpl">
+      <div class="autocomplete">
+        <label :for="id">{{label}}</label>
+        <textarea v-if="textarea" :id="id" :rows="rows" :cols="cols" class="autocomplete-input" :placeholder="placeholder" @focusout="focusout" @focus="focus" @keydown.13="chooseItem" @keydown.tab="chooseItem" @keydown.40="moveDown" @keydown.38="moveUp" v-model="inputValue"
+          type="text"></textarea>
+        <input v-else :id="id" class="autocomplete-input" :placeholder="placeholder" @focusout="focusout" @focus="focus" @keydown.13="chooseItem" @keydown.tab="chooseItem" @keydown.40="moveDown" @keydown.38="moveUp" v-model="inputValue" type="text">
+        <ul :class="{
+          'autocomplete-list': true,
+          [id+'-list']: true
+        }" v-if="searchMatch.length > 0">
+          <li :class="{active: selectedIndex === index}" v-for="(result, index) in searchMatch" @click="selectItem(index), chooseItem()" v-html="highlightWord(result)">
+          </li>
+        </ul>
+      </div>
+    </script>
+
+    <header>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6" id="logo-container">
+            <img src="assets/img/logo-horizontal.png" class="d-none d-sm-block">
+            <img src="assets/img/logo-vertical.png" class="d-sm-none">
+          </div>
+          <div class="col-lg-5">
+            <ul class="float-lg-right">
+              <li><i class="fa fa-check" aria-hidden="true"></i> No fee to present your case</li>
+              <li><i class="fa fa-check" aria-hidden="true"></i> Choose from lawyer in your areas</li>
+              <li><i class="fa fa-check" aria-hidden="true"></i> A 100% confidential service</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main role="main" id="main-content">
+      <div class="container">
+
+        <div class="col-lg-12">
+          <h1>Find a Lawyer for your Legal Issue</h1>
+          <p class="lead">Fast, Free and Confidential</p>
+        </div>
+        <!-- Form container -->
+        <div class="col-lg-5 float-lg-left" id="form">
+          <form>
+            <div class="form-group">
+
+              <div id="auto">
+                <span class="sequence">1</span>
+                <autocomplete label="Enter Zip Code or City:" placeholder="Does not have to be where you live" />
+              </div>
+
+              <div id="case-select">
+                <label>Choose a category:</label>
+                <span class="sequence">2</span>
+                <select class="form-control form-control-lg"
+                  v-model="selected"
+                  @change="onChange($event), showSCModal = true"
+                  v-on:click="isHidden = false">
+                  <option 
+                    v-for="cat in cats" 
+                    v-bind:value="cat.value"
+                    >
+                    {{ cat.text }}
+                  </option>
+                </select>
+              </div>
+
+            </div>
+            <div class="col-lg-12 text-center">
+              Can’t find your category? 
+              <span 
+              @click="getOthers" 
+              @mouseup="showSCModal = true"
+              v-on:click="isHidden = true" id="others-btn">Click here.</span>
+            </div> 
+
+            <!-- Specific cases modal -->
+            <div name="modal" v-if="showSCModal" @close="showSCModal = false" class="custom-modal">
+              <div class="modal-mask">
+                <div class="modal-wrapper">
+                  <div class="modal-container">
+
+                    <div class="modal-header">
+                      <slot name="header">
+                        <div></div>
+                        <button @click="showSCModal = false" class="float-lg-right">X</button>
+                      </slot>
+                    </div>
+
+                    <div class="modal-body" id="specified-categories">
+                      <slot name="body">
+                        <div v-if="categ == 'family'" class="row">
+                          <div class="col-lg-12">
+                            <h5 v-if="!isHidden"><span class="sequence">3</span> Which <strong>Family law</strong> issue(s) apply to your case?</h5>
+                          </div>
+                          <div v-for="family in families" class="col-lg-6">
+                            <input type="checkbox" :value="family.option">
+                            <label :for="family.option">{{family.option}}
+                          </div>
+                        </div>
+
+                        <div v-else-if="categ == 'criminal defense'" class="row">
+                          <div class="col-lg-12">
+                            <h5 v-if="!isHidden"><span class="sequence">3</span> Which <strong>Criminal Defense law</strong> issue(s) apply to your case?</h5>
+                          </div>
+                          <div v-for="criminal_defense in criminal_defenses" class="col-lg-6">
+                            <input type="checkbox" :value="criminal_defense.option">
+                            <label :for="criminal_defense.option">{{criminal_defense.option}}
+                          </div>
+                        </div>
+
+                        <div v-else-if="categ == 'othercats'" class="row">
+                          <div class="col-lg-12">
+                            <h5>OTHER CATEGORIE</h5>
+                            <p>Choose the category that best fits your case</p>
+                          </div>
+
+                          <div v-for="other in others" class="col-lg-6">
+                            <p> <a href="#">{{ other.option }}</p></a>
+                          </div>
+                        </div>
+
+                        <div v-else class="row">
+                          <div class="col-lg-12">
+                            <h5 v-if="!isHidden"><span class="sequence">3</span> Which <strong>Dummy law</strong> issue(s) apply to your case?</h5>
+                          </div>
+                          <div v-for="dummy in dummies" class="col-lg-6">
+                            <input type="checkbox" :value="dummy.option">
+                            <label :for="dummy.option">{{dummy.option}}
+                          </div>
+                        </div>
+
+                      </slot>
+                    </div>
+
+                    <div class="modal-footer" id="find-lawyer">
+                      <slot name="footer" v-if="!isHidden">
+                        <div class="row">
+                        <div class="col-lg-12 text-center">
+                          <button class="modal-default-button" @click="showSCModal = false">
+                            FIND A LAWYER NOW
+                          </button>
+                        </div>
+                      </div>
+                      </slot>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </form>
+        </div>
+
+      <!-- Reviews container -->
+      <div class="col-lg-5 float-lg-right">
+        <div class="col-lg-12">
+          <h3>Clients review LegalMatch lawyers</h3>
+        </div>
+
+        <div id="reviews">
+          <figure v-for="review in reviews">
+
+            <div class="col-lg-3 col-sm-3 float-lg-left text-center">
+              <img :src="review.profilepic" />
+              <figcaption>
+                  <cite class="author">{{ review.name }}</cite>
+                  <cite class="state">{{ review.state }}</cite>
+              </figcaption>
+            </div>
+
+            <div class="col-lg-9 col-sm-9 float-lg-left">
+              <div class="float-lg-left">
+                <figcaption>
+                  <cite class="company">{{ review.company }}</cite>
+                </figcaption>
+              </div>
+              <div class="rating">
+                <span class="fa fa-star checked float-lg-left" v-for="rate in review.rating"></span>
+              </div>
+              <div class="col-lg-12 col-sm-12 float-lg-left">
+                <div class="row">
+                  <blockquote>
+                    "{{review.quote }} ...
+                  </blockquote>
+                  <span class="read-review"><button @click="showModal = true, itemClicked(review)">Read Review <i class="fas fa-book-open"></i></button></span>  
+              </div>
+            </div>
+            
+          </figure>
+          <!-- Review modal -->
+          <div name="modal" v-if="showModal" @close="showModal = false" class="custom-modal">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-container">
+
+                  <div class="modal-header">
+                    <slot name="header">
+                      <h4>Client Review</h4>
+                      <button @click="showModal = false" class="float-lg-right">X</button>
+                    </slot>
+                  </div>
+
+                  <div class="modal-body">
+                    <slot name="body">
+                      <div class="col-lg-2 float-lg-left">
+                        <img :src="profilepic" />
+                      </div>
+                      <div class="col-lg-10 float-lg-left">
+                        <p id="name">{{ name }}</p>
+                        <p id="state">{{ state }}</p>
+                        <p id="compant">{{ company }}</p>
+                      </div>
+
+                      <div class="col-lg-12 users-rating">
+                        <span class="">Rating ({{ Users }} users)</span>
+                        <span class="fa fa-star checked" v-for="rate in 4"></span>
+                        <span class="fa fa-star" v-for="rate in 1"></span>
+                      </div>
+
+                      <div class="col-lg-12 float-lg-left">
+
+                        <div class="row">
+                          <div class="col-lg-9 float-lg-left">Overall</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Overall"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Responded in a timely manner</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Responded_in_a_timely_manner"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Answered questions clearly</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Answered_questions_clearly"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Understood needs</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Understood_needs"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Gave complete and clear information</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Gave_complete_and_clear_information"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Knowledgeable in legal area</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Knowledgeable_in_legal_area"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Good value for money</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Good_value_for_money"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Would hire again</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Would_hire_again"></span></div>
+
+                        <div class="col-lg-9 float-lg-left">Would recommend to friend</div>
+                        <div class="col-lg-3 float-lg-left"><span class="fa fa-star checked" v-for="rate in Would_recommend_to_friend"></span></div>
+
+                        </div>
+                      </div>
+                    </slot>
+                  </div>
+
+                  <div class="modal-footer">
+                    <slot name="footer">
+                      <div class="row">
+                      <div class="col-lg-12">
+                        <span class="fa fa-star checked" v-for="rate in 5"></span> <strong>by Dexter Marchal, 06/10/2016</strong>
+                      </div>
+                      <div class="col-lg-12">
+                        Deb did a great job. Got my bench warrant set aside ... was sure I was
+                        going to jail ... phew. Judge seemed to respect her and I got what I 
+                      </div>
+                      <div class="col-lg-12">
+                        <button class="modal-default-button" @click="showModal = false">
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                    </slot>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+    </main>
+
+  <!-- codes ommited -->
+
+    <div class="clearfix"></div>
+    <!-- Footer section -->
+    <footer class="container">
+      <div class="row">
+        <div class="col-lg-3 col-sm-12"><img src="assets/img/logo-vertical.png"></div>
+
+        <div class="col-lg-6 col-sm-12 text-center">
+          <ul id="quicklinks">
+            <li><a href="#">User Agreement</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Site Map</a></li>
+          </ul>
+
+          <p>Copyright 1999-2016 LegalMatch. All rights reserved. LegalMatch,<br />the LegalMatch logo, and the traders are trademarks of LegalMatch. Patents Pending</p>
+        </div>
+        <div class="col-lg-3 col-sm-12" id="certified">
+          <div class="row">
+            <div class="col-lg-12 text-right">
+              <img src="assets/img/etrust.png">
+            </div>
+            <div class="col-lg-12 text-right">
+              <img src="assets/img/bbb.png">
+            </div>
+          </div> 
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/vue.js"></script>
+    <script src="assets/js/custom.js"></script>
+    <!-- Romoved Bootstrap core JavaScript
+    <script src="assets/js/vendor/jquery.slim.min.js"></script>
+    <script src="assets/js/vendor/popper.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.min.js"></script> 
+    <script src="assets/js/app.js"></script> -->
+    <!-- build:js -->
+  
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <!-- endbuild -->
+  </body>
+</html>
